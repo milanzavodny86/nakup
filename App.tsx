@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Icons } from './components/Icon';
 import { Product, ProductStatus, DEFAULT_CATEGORIES, CategoryType } from './types';
@@ -209,7 +210,7 @@ export default function App() {
     setIsSyncing(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      // Fixed: generateContent parameters and response handling
+      // Use generateContent with googleSearch tool
       const response: GenerateContentResponse = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `What can I cook with ${searchQuery}? Suggest simple recipes based on these ingredients: ${products.filter(p => p.status === 'stocked').map(p => p.name).join(', ')}`,
@@ -218,11 +219,11 @@ export default function App() {
         }
       });
 
-      // Fixed: use response.text property directly
+      // Use response.text property directly
       setAiResponse(response.text || "No response generated.");
       
-      // Fixed: safely access grounding chunks and fix the map error by casting or verifying the type
-      const chunks = response.candidates?.[0]?.groundMetadata?.groundingChunks as any[] | undefined;
+      // Fix: property is groundingMetadata, not groundMetadata
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
       if (Array.isArray(chunks)) {
         const sources = chunks
           .filter((chunk: any) => chunk.web)
