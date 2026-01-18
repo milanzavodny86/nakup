@@ -189,24 +189,30 @@ export default function App() {
     } catch (e) { alert('Chybný formát.'); }
   };
 
+  // Fix: Correct usage of GoogleGenAI and search grounding
   const handleAISearch = async () => {
     if (!searchQuery) return;
     setIsSyncing(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response: GenerateContentResponse = await ai.models.generateContent({
+      const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Čo môžem uvariť z: ${searchQuery}? Máme aj: ${products.filter(p => p.status === 'stocked').map(p => p.name).join(', ')}. Odpovedaj stručne v slovenčine.`,
         config: { tools: [{ googleSearch: {} }] }
       });
 
       setAiResponse(response.text || "");
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      if (chunks) {
-        setAiSources(chunks.filter((c: any) => c.web).map((c: any) => ({ title: c.web.title, uri: c.web.uri })));
+      // Fix: Safely access and cast grounding chunks
+      const metadata = response.candidates?.[0]?.groundingMetadata;
+      if (metadata?.groundingChunks) {
+        const chunks = metadata.groundingChunks as any[];
+        setAiSources(chunks.filter((c) => c.web).map((c) => ({ title: c.web.title, uri: c.web.uri })));
+      } else {
+        setAiSources([]);
       }
     } catch (error) {
       console.error(error);
+      alert("AI momentálne nedostupná.");
     } finally {
       setIsSyncing(false);
     }
