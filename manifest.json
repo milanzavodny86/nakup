@@ -1,6 +1,6 @@
 {
   "short_name": "Nakup",
-  "name": "Nákupný Zoznam Domov",
+  "name": "Môj Nákupný Zoznam",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3081/3081840.png",
@@ -17,7 +17,7 @@
   ],
   "start_url": "index.html",
   "display": "standalone",
-  "theme_color": "#059669",
+  "theme_color": "#2563eb",
   "background_color": "#f8fafc",
   "orientation": "portrait",
   "scope": "./"
