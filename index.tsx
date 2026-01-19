@@ -1,5 +1,5 @@
 
-// Importy pre React a ReactDOM pre vyriešenie chýb s globálnymi referenciami
+// Pridané importy pre správnu prácu s Reactom a ReactDOM v modernom prostredí
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -13,7 +13,7 @@ const App = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v8_final');
+      const saved = localStorage.getItem('nakup_v10_stable');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
@@ -24,7 +24,7 @@ const App = () => {
 
   const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v8_final', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v10_stable', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -60,7 +60,7 @@ const App = () => {
   }, [products, activeTab]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden text-slate-900 shadow-xl">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden text-slate-900">
       <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-lg shrink-0">
         <div className="flex justify-between items-end">
           <div>
@@ -177,6 +177,7 @@ const App = () => {
   );
 };
 
+// Renderovanie pomocou createRoot z react-dom/client
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = createRoot(rootElement);
