@@ -1,9 +1,7 @@
-
-import { GoogleGenAI } from "@google/genai";
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 
-// SEM VLOŽTE VAŠU URL Z GOOGLE APPS SCRIPTU (Deployment URL)
+// URL z Google Apps Scriptu (Deployment URL)
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw1qbHumkCDiGnv9E5lQ5l1_GkkhWT227tc8-ymUlqktZCYo2AAOwoaPTzwAMc-QA6tDA/exec';
 
 type ItemStatus = 'needed' | 'stocked';
@@ -29,19 +27,27 @@ const App = () => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
+      
+      // Najprv skúsime načítat lokálne dáta, aby sme nemali bielu obrazovku
+      const saved = localStorage.getItem('household_items_v2');
+      if (saved) {
+        try {
+          setProducts(JSON.parse(saved));
+        } catch (e) {
+          console.error("Local data parse error", e);
+        }
+      }
+
       try {
-        // Skúsime načítat z cloudu cez proxy/priamo ak je povolené CORS
-        // Ak používame GAS, musíme posielať požiadavky cez fetch
         const response = await fetch(BACKEND_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         if (data && data.products) {
           setProducts(data.products);
-          localStorage.setItem('household_items_v1', JSON.stringify(data.products));
+          localStorage.setItem('household_items_v2', JSON.stringify(data.products));
         }
       } catch (e) {
         console.error("Cloud sync failed, using local data", e);
-        const saved = localStorage.getItem('household_items_v1');
-        if (saved) setProducts(JSON.parse(saved));
       } finally {
         setIsLoading(false);
       }
@@ -52,12 +58,12 @@ const App = () => {
   // Funkcia na ukladanie do cloudu aj lokálne
   const syncData = async (newProducts: Product[]) => {
     setProducts(newProducts);
-    localStorage.setItem('household_items_v1', JSON.stringify(newProducts));
+    localStorage.setItem('household_items_v2', JSON.stringify(newProducts));
     
     try {
       await fetch(BACKEND_URL, {
         method: 'POST',
-        mode: 'no-cors', // Dôležité pre Google Apps Script
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ products: newProducts })
       });
@@ -68,13 +74,12 @@ const App = () => {
 
   const addProduct = () => {
     if (!newItem.name.trim()) return;
-    // Fix: Explicitly cast 'needed' as ItemStatus to satisfy Product interface type constraint
     const item: Product = {
       id: crypto.randomUUID(),
       name: newItem.name,
       quantity: newItem.quantity,
       category: newItem.category,
-      status: 'needed' as ItemStatus
+      status: 'needed'
     };
     syncData([...products, item]);
     setNewItem({ name: '', quantity: '', category: CATEGORIES[0] });
@@ -102,10 +107,11 @@ const App = () => {
   }, [products, activeTab]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative">
-      {isLoading && (
-        <div className="absolute inset-0 z-[60] bg-white/80 flex items-center justify-center backdrop-blur-sm">
-          <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden">
+      {isLoading && products.length === 0 && (
+        <div className="absolute inset-0 z-[60] bg-white flex flex-col items-center justify-center">
+          <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Načítavam Nakup...</p>
         </div>
       )}
 
@@ -113,7 +119,7 @@ const App = () => {
       <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-xl shadow-emerald-900/10 shrink-0">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tighter leading-none">NÁKUP</h1>
+            <h1 className="text-3xl font-extrabold tracking-tighter leading-none uppercase">Nakup</h1>
             <p className="text-[10px] font-semibold opacity-70 tracking-widest mt-1 uppercase">Zdieľaný zoznam</p>
           </div>
           <button 
@@ -129,9 +135,9 @@ const App = () => {
       {/* List */}
       <main className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar pb-32">
         {filteredList.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-20 text-slate-400">
+          <div className="h-full flex flex-col items-center justify-center opacity-20 text-slate-400 py-20">
             <span className="text-8xl mb-4">🛒</span>
-            <p className="font-bold uppercase tracking-widest text-sm text-center">Zoznam je prázdny<br/>alebo sa načítava...</p>
+            <p className="font-bold uppercase tracking-widest text-sm text-center">Zoznam je prázdny</p>
           </div>
         ) : (
           filteredList.map(item => (

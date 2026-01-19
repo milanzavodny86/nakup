@@ -18,6 +18,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior-y: contain;
+            background-color: #f8fafc;
         }
         .safe-area-inset-bottom {
             padding-bottom: env(safe-area-inset-bottom);
@@ -28,6 +29,13 @@
         }
         .animate-slide-up {
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 <script type="importmap">
