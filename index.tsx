@@ -1,5 +1,5 @@
 
-// Pridanie explicitných importov pre React a ReactDOM pre vyriešenie chýb modulu
+// Pridané importy pre React a ReactDOM pre vyriešenie chýb globálnych premenných
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -13,7 +13,7 @@ const App = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v11_stable');
+      const saved = localStorage.getItem('nakup_v12_final');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
@@ -24,7 +24,7 @@ const App = () => {
 
   const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v11_stable', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v12_final', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -179,6 +179,7 @@ const App = () => {
 
 const rootElement = document.getElementById('root');
 if (rootElement) {
+  // Použitie createRoot z react-dom/client
   const root = createRoot(rootElement);
   root.render(<App />);
 }
