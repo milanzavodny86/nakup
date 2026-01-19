@@ -1,5 +1,5 @@
 {
-  "name": "Nákupníček",
-  "description": "Inteligentný nákupný zoznam a správa domácej špajze.",
+  "name": "Nákup PWA",
+  "description": "Nativne pôsobiaci nákupný zoznam pre Android.",
   "requestFramePermissions": []
 }

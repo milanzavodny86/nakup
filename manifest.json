@@ -1,20 +1,23 @@
 {
-  "short_name": "Nákupníček",
-  "name": "Nákupníček - Inteligentný zoznam",
+  "short_name": "Nákup",
+  "name": "Nákupný Zoznam Domácnosť",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3081/3081840.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3081/3081840.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
-  "theme_color": "#059669",
-  "background_color": "#ffffff"
+  "theme_color": "#10b981",
+  "background_color": "#f8fafc",
+  "orientation": "portrait"
 }
