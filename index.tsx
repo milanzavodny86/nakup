@@ -1,6 +1,10 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { createRoot } from 'react-dom/client';
+// V tomto režime (Babel in browser) nepoužívame 'import' príkazy v produkčnom GAS prostredí,
+// ale pre správnu typovú kontrolu v IDE pridávame importy.
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+const { useState, useEffect, useMemo } = React;
 
 const CATEGORIES = ['🍎 Ovocie & Zelenina', '🥖 Pečivo', '🧀 Mliečne výrobky', '🥩 Mäso', '🍝 Trvanlivé', '🥤 Nápoje', '🧼 Drogéria', '✨ Ostatné'];
 
@@ -12,24 +16,24 @@ const App = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v15_final');
+      const saved = localStorage.getItem('nakup_v2_data');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
     } catch (e) {
-      console.error("Storage load failed", e);
+      console.error("Chyba pri načítaní dát", e);
     }
   }, []);
 
   const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v15_final', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v2_data', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
     if (!newItem.name.trim()) return;
     const item = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: Date.now().toString(),
       name: newItem.name.trim(),
       quantity: newItem.quantity.trim(),
       category: newItem.category,
@@ -64,7 +68,7 @@ const App = () => {
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black tracking-tighter uppercase italic">Nakup</h1>
-            <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">Môj domov</p>
+            <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">v2.0.0-FIXED</p>
           </div>
           <div className="bg-white/20 px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2">
             <span className="text-xl font-black">{products.filter(p => p.status === 'needed').length}</span>
@@ -176,8 +180,9 @@ const App = () => {
   );
 };
 
+// Fix for ReactDOM.createRoot which is the modern API for React 18+
 const rootElement = document.getElementById('root');
 if (rootElement) {
-  const root = createRoot(rootElement);
+  const root = ReactDOM.createRoot(rootElement);
   root.render(<App />);
 }
