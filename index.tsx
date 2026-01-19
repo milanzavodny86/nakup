@@ -68,7 +68,7 @@ const App = () => {
   }, [products, activeTab]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden shadow-2xl text-slate-900">
       <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-lg shrink-0">
         <div className="flex justify-between items-end">
           <div>
@@ -188,5 +188,5 @@ const App = () => {
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = createRoot(rootElement);
-  root.render(React.createElement(App));
+  root.render(<App />);
 }
