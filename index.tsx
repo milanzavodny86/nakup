@@ -1,27 +1,19 @@
+
+// Importy pre React a ReactDOM pre vyriešenie chýb s globálnymi referenciami
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-
-type ItemStatus = 'needed' | 'stocked';
-
-interface Product {
-  id: string;
-  name: string;
-  quantity: string;
-  category: string;
-  status: ItemStatus;
-}
 
 const CATEGORIES = ['🍎 Ovocie & Zelenina', '🥖 Pečivo', '🧀 Mliečne výrobky', '🥩 Mäso', '🍝 Trvanlivé', '🥤 Nápoje', '🧼 Drogéria', '✨ Ostatné'];
 
 const App = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [activeTab, setActiveTab] = useState<'shopping' | 'all'>('shopping');
+  const [products, setProducts] = useState([]);
+  const [activeTab, setActiveTab] = useState('shopping');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', quantity: '', category: CATEGORIES[0] });
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v7_final');
+      const saved = localStorage.getItem('nakup_v8_final');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
@@ -30,14 +22,14 @@ const App = () => {
     }
   }, []);
 
-  const saveData = (newProducts: Product[]) => {
+  const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v7_final', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v8_final', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
     if (!newItem.name.trim()) return;
-    const item: Product = {
+    const item = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: newItem.name.trim(),
       quantity: newItem.quantity.trim(),
@@ -49,12 +41,12 @@ const App = () => {
     setIsModalOpen(false);
   };
 
-  const toggleStatus = (id: string) => {
-    const updated = products.map(p => p.id === id ? { ...p, status: (p.status === 'needed' ? 'stocked' : 'needed') as ItemStatus } : p);
+  const toggleStatus = (id) => {
+    const updated = products.map(p => p.id === id ? { ...p, status: p.status === 'needed' ? 'stocked' : 'needed' } : p);
     saveData(updated);
   };
 
-  const deleteProduct = (id: string, e: React.MouseEvent) => {
+  const deleteProduct = (id, e) => {
     e.stopPropagation();
     if (window.confirm('Odstrániť túto položku?')) {
       const updated = products.filter(p => p.id !== id);
@@ -185,12 +177,8 @@ const App = () => {
   );
 };
 
-try {
-  const rootElement = document.getElementById('root');
-  if (rootElement) {
-    const root = createRoot(rootElement);
-    root.render(React.createElement(App));
-  }
-} catch (err) {
-  console.error("Critical Render Error:", err);
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<App />);
 }
