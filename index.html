@@ -22,9 +22,18 @@
             margin: 0;
             overscroll-behavior-y: contain;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #root:empty::after {
+            content: "Spúšťam aplikáciu...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #2563eb;
+            font-weight: 800;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 <script type="importmap">
 {
