@@ -1,6 +1,6 @@
 {
-  "short_name": "Nákup",
-  "name": "Nákupný Zoznam Domácnosť",
+  "short_name": "Nakup",
+  "name": "Nakup",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3081/3081840.png",
@@ -15,9 +15,10 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "theme_color": "#10b981",
   "background_color": "#f8fafc",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "scope": "./"
 }
