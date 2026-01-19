@@ -1,5 +1,5 @@
 
-// Pridané importy pre správnu prácu s Reactom a ReactDOM v modernom prostredí
+// Pridanie explicitných importov pre React a ReactDOM pre vyriešenie chýb modulu
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -13,7 +13,7 @@ const App = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v10_stable');
+      const saved = localStorage.getItem('nakup_v11_stable');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
@@ -24,7 +24,7 @@ const App = () => {
 
   const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v10_stable', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v11_stable', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -177,7 +177,6 @@ const App = () => {
   );
 };
 
-// Renderovanie pomocou createRoot z react-dom/client
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = createRoot(rootElement);
