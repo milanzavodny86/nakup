@@ -1,10 +1,5 @@
 
-// V prostredí Babel-in-browser nepoužívame 'import'. 
-// React a ReactDOM sú dostupné globálne vďaka script tagom v index.html.
-
-// @ts-ignore
 import React, { useState, useEffect, useMemo } from 'react';
-// @ts-ignore
 import { createRoot } from 'react-dom/client';
 
 const CATEGORIES = ['🍎 Ovocie & Zelenina', '🥖 Pečivo', '🧀 Mliečne výrobky', '🥩 Mäso', '🍝 Trvanlivé', '🥤 Nápoje', '🧼 Drogéria', '✨ Ostatné'];
@@ -17,7 +12,7 @@ const App = () => {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('nakup_v14_stable');
+      const saved = localStorage.getItem('nakup_v15_final');
       if (saved) {
         setProducts(JSON.parse(saved));
       }
@@ -28,7 +23,7 @@ const App = () => {
 
   const saveData = (newProducts) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v14_stable', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v15_final', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
