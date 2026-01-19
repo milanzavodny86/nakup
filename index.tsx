@@ -20,19 +20,19 @@ const App = () => {
   const [newItem, setNewItem] = useState({ name: '', quantity: '', category: CATEGORIES[0] });
 
   useEffect(() => {
-    const saved = localStorage.getItem('nakup_v6_stable');
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('nakup_v7_final');
+      if (saved) {
         setProducts(JSON.parse(saved));
-      } catch (e) {
-        console.error("Storage load failed", e);
       }
+    } catch (e) {
+      console.error("Storage load failed", e);
     }
   }, []);
 
   const saveData = (newProducts: Product[]) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_v6_stable', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_v7_final', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -68,7 +68,7 @@ const App = () => {
   }, [products, activeTab]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden text-slate-900">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden text-slate-900 shadow-xl">
       <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-lg shrink-0">
         <div className="flex justify-between items-end">
           <div>
@@ -85,7 +85,7 @@ const App = () => {
       <main className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar pb-32">
         {filteredList.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center opacity-30 text-slate-400 py-20">
-            <div className="text-7xl mb-4">🛒</div>
+            <div className="text-7xl mb-4 text-emerald-100">🛒</div>
             <p className="font-bold uppercase tracking-widest text-xs">Zoznam je prázdny</p>
           </div>
         ) : (
@@ -151,14 +151,14 @@ const App = () => {
             <div className="space-y-4">
               <input 
                 autoFocus
-                className="w-full bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold transition-all"
+                className="w-full bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold transition-all text-slate-900"
                 placeholder="Názov (napr. Mlieko)"
                 value={newItem.name}
                 onChange={e => setNewItem({...newItem, name: e.target.value})}
               />
               <div className="flex gap-3">
                 <input 
-                  className="w-24 bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold text-center"
+                  className="w-24 bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold text-center text-slate-900"
                   placeholder="Mn."
                   value={newItem.quantity}
                   onChange={e => setNewItem({...newItem, quantity: e.target.value})}
@@ -185,8 +185,12 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById('root');
-if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(React.createElement(App));
+try {
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    const root = createRoot(rootElement);
+    root.render(React.createElement(App));
+  }
+} catch (err) {
+  console.error("Critical Render Error:", err);
 }
