@@ -20,25 +20,26 @@ const App = () => {
   const [newItem, setNewItem] = useState({ name: '', quantity: '', category: CATEGORIES[0] });
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('nakup_storage_final');
-      if (saved) {
+    console.log("App mounted");
+    const saved = localStorage.getItem('nakup_storage_v4');
+    if (saved) {
+      try {
         setProducts(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error("Storage error", e);
     }
   }, []);
 
   const saveData = (newProducts: Product[]) => {
     setProducts(newProducts);
-    localStorage.setItem('nakup_storage_final', JSON.stringify(newProducts));
+    localStorage.setItem('nakup_storage_v4', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
     if (!newItem.name.trim()) return;
     const item: Product = {
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
       name: newItem.name,
       quantity: newItem.quantity,
       category: newItem.category,
@@ -179,5 +180,8 @@ const App = () => {
   );
 };
 
-const root = createRoot(document.getElementById('root')!);
-root.render(<App />);
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(React.createElement(App));
+}
