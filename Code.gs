@@ -1,6 +1,5 @@
 function doGet(e) {
-  const data = getData();
-  return ContentService.createTextOutput(JSON.stringify(data))
+  return ContentService.createTextOutput(JSON.stringify(getData()))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -17,25 +16,19 @@ function doPost(e) {
 }
 
 function getData() {
-  const fileName = "Nakup_DB.json";
-  try {
-    const files = DriveApp.getFilesByName(fileName);
-    if (files.hasNext()) {
-      const file = files.next();
-      const content = file.getBlob().getDataAsString();
-      return JSON.parse(content);
-    }
-  } catch (e) {
-    Logger.log("Chyba pri čítaní: " + e.toString());
+  const fileName = "Nakup_Database.json";
+  const files = DriveApp.getFilesByName(fileName);
+  if (files.hasNext()) {
+    const content = files.next().getBlob().getDataAsString();
+    return JSON.parse(content);
   }
   return { products: [] };
 }
 
 function saveData(data) {
-  const fileName = "Nakup_DB.json";
+  const fileName = "Nakup_Database.json";
   const files = DriveApp.getFilesByName(fileName);
   const jsonString = JSON.stringify(data);
-  
   if (files.hasNext()) {
     files.next().setContent(jsonString);
   } else {

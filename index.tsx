@@ -1,178 +1,161 @@
-
-// Pridané importy pre vyriešenie chýb UMD globálov
-import React, { useState, useEffect, useMemo } from 'react';
+// Added imports to resolve UMD global errors and satisfy module requirements
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 
-const CATEGORIES = ['🍎 Ovocie', '🥖 Pečivo', '🧀 Mliečne', '🥩 Mäso', '🍝 Trvanlivé', '🥤 Nápoje', '🧼 Drogéria', '✨ Ostatné'];
+// SEM VLOŽÍTE URL PO NASADENÍ GOOGLE APPS SCRIPTU
+const GAS_URL = "https://script.google.com/macros/s/AKfycbw1qbHumkCDiGnv9E5lQ5l1_GkkhWT227tc8-ymUlqktZCYo2AAOwoaPTzwAMc-QA6tDA/exec";
+
+const CATEGORIES = ["🥦 Potraviny", "🧼 Drogéria", "🏠 Domácnosť", "🐶 Maznáčikovia"];
 
 const App = () => {
-  const [products, setProducts] = useState([]);
-  const [activeTab, setActiveTab] = useState('shopping');
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', quantity: '', category: CATEGORIES[0] });
+  const [newItem, setNewItem] = useState({ name: "", category: CATEGORIES[0] });
 
+  // Načítanie pri štarte
   useEffect(() => {
-    const saved = localStorage.getItem('nakup_v4_data');
-    if (saved) setProducts(JSON.parse(saved));
+    fetchData();
   }, []);
 
-  const saveData = (newProducts) => {
-    setProducts(newProducts);
-    localStorage.setItem('nakup_v4_data', JSON.stringify(newProducts));
-  };
+  const fetchData = async () => {
+    if (GAS_URL === "https://script.google.com/macros/s/AKfycbw1qbHumkCDiGnv9E5lQ5l1_GkkhWT227tc8-ymUlqktZCYo2AAOwoaPTzwAMc-QA6tDA/exec") {
+      const saved = localStorage.getItem('local_items');
+      if (saved) setItems(JSON.parse(saved));
+      return;
+    }
 
-  const addProduct = () => {
-    if (!newItem.name.trim()) return;
-    const item = {
-      id: Date.now().toString(),
-      name: newItem.name.trim(),
-      quantity: newItem.quantity.trim(),
-      category: newItem.category,
-      status: 'needed'
-    };
-    saveData([...products, item]);
-    setNewItem({ name: '', quantity: '', category: CATEGORIES[0] });
-    setIsModalOpen(false);
-  };
-
-  const toggleStatus = (id) => {
-    saveData(products.map(p => p.id === id ? { ...p, status: p.status === 'needed' ? 'stocked' : 'needed' } : p));
-  };
-
-  const deleteProduct = (id, e) => {
-    e.stopPropagation();
-    if (confirm('Odstrániť túto položku?')) {
-      saveData(products.filter(p => p.id !== id));
+    setLoading(true);
+    try {
+      const res = await fetch(GAS_URL);
+      const data = await res.json();
+      setItems(data.products || []);
+    } catch (err) {
+      console.error("Chyba načítania:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredList = useMemo(() => {
-    const list = activeTab === 'shopping' ? products.filter(p => p.status === 'needed') : products;
-    return [...list].sort((a, b) => a.category.localeCompare(b.category));
-  }, [products, activeTab]);
+  const syncData = async (newItems) => {
+    setItems(newItems);
+    localStorage.setItem('local_items', JSON.stringify(newItems));
+
+    if (GAS_URL !== "https://script.google.com/macros/s/AKfycbw1qbHumkCDiGnv9E5lQ5l1_GkkhWT227tc8-ymUlqktZCYo2AAOwoaPTzwAMc-QA6tDA/exec") {
+      try {
+        await fetch(GAS_URL, {
+          method: "POST",
+          body: JSON.stringify({ products: newItems }),
+          mode: "no-cors" // Pre Google Apps Script POST
+        });
+      } catch (err) {
+        console.error("Chyba synchronizácie:", err);
+      }
+    }
+  };
+
+  const addItem = () => {
+    if (!newItem.name.trim()) return;
+    const updated = [...items, { ...newItem, id: Date.now(), status: "needed" }];
+    syncData(updated);
+    setNewItem({ name: "", category: CATEGORIES[0] });
+    setIsModalOpen(false);
+  };
+
+  const toggleItem = (id) => {
+    const updated = items.map(item => 
+      item.id === id ? { ...item, status: item.status === "needed" ? "bought" : "needed" } : item
+    );
+    syncData(updated);
+  };
+
+  const deleteItem = (id, e) => {
+    e.stopPropagation();
+    const updated = items.filter(i => i.id !== id);
+    syncData(updated);
+  };
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-white overflow-hidden shadow-xl">
       {/* Header */}
-      <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-lg shrink-0 border-b-4 border-emerald-700/30">
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">NÁKUP</h1>
-            <p className="text-[10px] font-bold opacity-70 tracking-widest mt-1 uppercase">VERZIA 4.1.0 (APP-MODE)</p>
-          </div>
-          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 flex items-center gap-2">
-            <span className="font-black text-xl leading-none">{products.filter(p => p.status === 'needed').length}</span>
-            <span className="text-lg">🛒</span>
+      <div className="bg-blue-600 p-6 pt-12 pb-8 rounded-b-3xl shadow-lg">
+        <div className="flex justify-between items-center text-white">
+          <h1 className="text-2xl font-extrabold tracking-tight italic uppercase">Nákup</h1>
+          {loading && <div className="animate-spin text-xl">⏳</div>}
+          <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+            {items.filter(i => i.status === 'needed').length} POLOŽIEK
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Zoznam */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar pb-32">
-        {filteredList.length === 0 ? (
-          <div className="py-24 text-center opacity-30">
-            <div className="text-6xl mb-4">✨</div>
-            <p className="font-bold uppercase text-[10px] tracking-widest">Nič tu nie je</p>
+      {/* List */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+        {items.length === 0 ? (
+          <div className="text-center py-20 text-slate-400">
+            <p className="text-5xl mb-4">🛒</p>
+            <p className="text-sm font-semibold uppercase tracking-widest">Zoznam je prázdny</p>
           </div>
         ) : (
-          filteredList.map(item => (
+          items.map(item => (
             <div 
               key={item.id}
-              onClick={() => toggleStatus(item.id)}
-              className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-[0.97] select-none ${
-                item.status === 'stocked' ? 'bg-slate-100 border-transparent opacity-50' : 'bg-white border-slate-100 shadow-sm'
+              onClick={() => toggleItem(item.id)}
+              className={`flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-95 ${
+                item.status === 'bought' ? 'bg-slate-50 border-transparent opacity-50' : 'bg-white border-slate-100 shadow-sm'
               }`}
             >
-              <div className="flex items-center gap-4 flex-1">
-                <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
-                  item.status === 'stocked' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'
+              <div className="flex items-center gap-4">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  item.status === 'bought' ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300'
                 }`}>
-                  {item.status === 'stocked' && <span className="text-xs font-bold">✓</span>}
+                  {item.status === 'bought' && "✓"}
                 </div>
-                <div className="flex-1">
-                  <h3 className={`font-bold text-slate-800 text-lg leading-tight ${item.status === 'stocked' ? 'line-through' : ''}`}>{item.name}</h3>
-                  <span className="text-[9px] font-black uppercase text-emerald-600 tracking-wider">{item.category}</span>
+                <div>
+                  <p className={`font-bold ${item.status === 'bought' ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                    {item.name}
+                  </p>
+                  <p className="text-[10px] font-bold text-blue-500 uppercase">{item.category}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                {item.quantity && <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[11px] font-black">{item.quantity}</span>}
-                <button 
-                  onClick={(e) => deleteProduct(item.id, e)} 
-                  className="text-slate-300 p-2 text-2xl hover:text-red-400 transition-colors"
-                >
-                  &times;
-                </button>
-              </div>
+              <button onClick={(e) => deleteItem(item.id, e)} className="text-slate-300 text-2xl px-2">&times;</button>
             </div>
           ))
         )}
-      </main>
+      </div>
 
-      {/* Floating Button */}
+      {/* FAB button */}
       <button 
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-24 right-6 w-16 h-16 bg-emerald-600 text-white rounded-full shadow-2xl flex items-center justify-center text-4xl z-40 border-4 border-white active:scale-90 transition-transform shadow-emerald-600/40"
+        className="fixed bottom-10 right-6 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-2xl flex items-center justify-center text-4xl border-4 border-white active:scale-90 transition-transform"
       >
         +
       </button>
 
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 flex pb-8 pt-4 px-6 gap-4 z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-        <button 
-          onClick={() => setActiveTab('shopping')} 
-          className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${activeTab === 'shopping' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}
-        >
-          <span className="text-xl leading-none">🛒</span>
-          <span className="text-[9px] font-black uppercase tracking-tighter">Nákup</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('all')} 
-          className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${activeTab === 'all' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}
-        >
-          <span className="text-xl leading-none">📦</span>
-          <span className="text-[9px] font-black uppercase tracking-tighter">Sklad</span>
-        </button>
-      </nav>
-
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)}>
-          <div className="bg-white w-full rounded-t-[3rem] p-8 animate-slide-up shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
-            <h2 className="text-2xl font-black mb-6 uppercase italic tracking-tighter text-slate-800">Pridať produkt</h2>
-            <div className="space-y-5">
-              <input 
-                autoFocus 
-                className="w-full bg-slate-50 p-5 rounded-2xl outline-none border-2 border-transparent focus:border-emerald-500 font-bold text-lg text-slate-800 placeholder:text-slate-300" 
-                placeholder="Názov (napr. Mlieko)" 
-                value={newItem.name} 
-                onChange={e => setNewItem({...newItem, name: e.target.value})} 
-              />
-              <div className="flex gap-3">
-                <input 
-                  className="w-24 bg-slate-50 p-5 rounded-2xl outline-none text-center font-bold border-2 border-transparent focus:border-emerald-500 text-slate-800" 
-                  placeholder="Mn." 
-                  value={newItem.quantity} 
-                  onChange={e => setNewItem({...newItem, quantity: e.target.value})} 
-                />
-                <div className="flex-1 relative">
-                  <select 
-                    className="w-full bg-slate-50 p-5 rounded-2xl outline-none font-bold border-2 border-transparent focus:border-emerald-500 appearance-none text-emerald-600" 
-                    value={newItem.category} 
-                    onChange={e => setNewItem({...newItem, category: e.target.value})}
-                  >
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-600 opacity-50">▼</div>
-                </div>
-              </div>
-              <button 
-                onClick={addProduct} 
-                className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all mt-4 text-lg"
-              >
-                Pridať do zoznamu
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-white w-full p-8 rounded-t-[2.5rem] shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-slate-800">Pridať položku</h2>
+            <input 
+              autoFocus
+              className="w-full bg-slate-100 p-4 rounded-xl outline-none focus:ring-2 ring-blue-500 font-semibold"
+              placeholder="Názov produktu..."
+              value={newItem.name}
+              onChange={e => setNewItem({...newItem, name: e.target.value})}
+            />
+            <select 
+              className="w-full bg-slate-100 p-4 rounded-xl outline-none font-semibold"
+              value={newItem.category}
+              onChange={e => setNewItem({...newItem, category: e.target.value})}
+            >
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <button 
+              onClick={addItem}
+              className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest active:scale-95"
+            >
+              Uložiť
+            </button>
           </div>
         </div>
       )}
@@ -180,6 +163,6 @@ const App = () => {
   );
 };
 
-// Oprava pre volanie ReactDOM.createRoot z balíčka react-dom/client
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+// Fixed to use the standard createRoot API from react-dom/client
+const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(<App />);
