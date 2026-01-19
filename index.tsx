@@ -1,8 +1,8 @@
 
-// Fix: Added explicit imports to satisfy module requirements and provide type definitions
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 
+// @google/genai Coding Guidelines: This file uses standard React imports to avoid UMD global issues.
 const CATEGORIES = ["🥦 Potraviny", "🧼 Drogéria", "🏠 Domácnosť", "🐶 Maznáčikovia", "🛠️ Iné"];
 
 const App = () => {
@@ -170,7 +170,9 @@ const App = () => {
   );
 };
 
-// Spustenie aplikácie cez globálny ReactDOM
-// Fix: Using ReactDOM.createRoot from the 'react-dom/client' import
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-root.render(<App />);
+// Fixed ReactDOM.createRoot by importing from 'react-dom/client'
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(<App />);
+}
