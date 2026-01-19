@@ -7,11 +7,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    <title>Nakup</title>
+    <title>Nákupný Zoznam</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -25,14 +25,13 @@
             -webkit-tap-highlight-color: transparent;
         }
         #root:empty::after {
-            content: "Načítavam zoznam...";
+            content: "Spúšťam aplikáciu...";
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             color: #2563eb;
             font-weight: 800;
-            letter-spacing: 0.05em;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
