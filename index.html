@@ -10,8 +10,10 @@
     <title>Nákupný Zoznam</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Načítanie Reactu ako globálnych premenných -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel na preklad JSX v prehliadači -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
@@ -47,6 +49,7 @@
 </head>
 <body>
     <div id="root"></div>
+    <!-- Script musí byť typu text/babel aby ho Babel spracoval -->
     <script type="text/babel" src="index.tsx"></script>
 </body>
 </html>
