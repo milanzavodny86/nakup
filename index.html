@@ -13,12 +13,19 @@
     <title>Nakup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
             -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: contain;
-            background-color: #f8fafc;
+        }
+        #root {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .safe-area-inset-bottom {
             padding-bottom: env(safe-area-inset-bottom);
@@ -41,15 +48,15 @@
 <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
+    "react/": "https://esm.sh/react@^18.2.0/",
+    "react": "https://esm.sh/react@^18.2.0",
     "@google/genai": "https://esm.sh/@google/genai@^1.37.0"
   }
 }
 </script>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body>
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
 </body>

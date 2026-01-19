@@ -1,8 +1,6 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
-
-// URL z Google Apps Scriptu (Deployment URL)
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw1qbHumkCDiGnv9E5lQ5l1_GkkhWT227tc8-ymUlqktZCYo2AAOwoaPTzwAMc-QA6tDA/exec';
 
 type ItemStatus = 'needed' | 'stocked';
 
@@ -23,31 +21,17 @@ const App = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItem, setNewItem] = useState({ name: '', quantity: '', category: CATEGORIES[0] });
 
-  // Načítanie dát pri štarte (Cloud + Local backup)
+  // Načítanie dát len z LocalStorage pre maximálnu stabilitu
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = () => {
       setIsLoading(true);
-      
-      // Najprv skúsime načítat lokálne dáta, aby sme nemali bielu obrazovku
-      const saved = localStorage.getItem('household_items_v2');
-      if (saved) {
-        try {
-          setProducts(JSON.parse(saved));
-        } catch (e) {
-          console.error("Local data parse error", e);
-        }
-      }
-
       try {
-        const response = await fetch(BACKEND_URL);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        if (data && data.products) {
-          setProducts(data.products);
-          localStorage.setItem('household_items_v2', JSON.stringify(data.products));
+        const saved = localStorage.getItem('nakup_storage_v3');
+        if (saved) {
+          setProducts(JSON.parse(saved));
         }
       } catch (e) {
-        console.error("Cloud sync failed, using local data", e);
+        console.error("Chyba pri načítaní dát", e);
       } finally {
         setIsLoading(false);
       }
@@ -55,21 +39,10 @@ const App = () => {
     loadData();
   }, []);
 
-  // Funkcia na ukladanie do cloudu aj lokálne
-  const syncData = async (newProducts: Product[]) => {
+  // Ukladanie dát
+  const saveData = (newProducts: Product[]) => {
     setProducts(newProducts);
-    localStorage.setItem('household_items_v2', JSON.stringify(newProducts));
-    
-    try {
-      await fetch(BACKEND_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products: newProducts })
-      });
-    } catch (e) {
-      console.error("Sync error", e);
-    }
+    localStorage.setItem('nakup_storage_v3', JSON.stringify(newProducts));
   };
 
   const addProduct = () => {
@@ -81,7 +54,7 @@ const App = () => {
       category: newItem.category,
       status: 'needed'
     };
-    syncData([...products, item]);
+    saveData([...products, item]);
     setNewItem({ name: '', quantity: '', category: CATEGORIES[0] });
     setIsModalOpen(false);
     if (window.navigator.vibrate) window.navigator.vibrate(50);
@@ -89,7 +62,7 @@ const App = () => {
 
   const toggleStatus = (id: string) => {
     const updated = products.map(p => p.id === id ? { ...p, status: (p.status === 'needed' ? 'stocked' : 'needed') as ItemStatus } : p);
-    syncData(updated);
+    saveData(updated);
     if (window.navigator.vibrate) window.navigator.vibrate(10);
   };
 
@@ -97,7 +70,7 @@ const App = () => {
     e.stopPropagation();
     if (confirm('Odstrániť položku?')) {
       const updated = products.filter(p => p.id !== id);
-      syncData(updated);
+      saveData(updated);
     }
   };
 
@@ -107,11 +80,11 @@ const App = () => {
   }, [products, activeTab]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden">
-      {isLoading && products.length === 0 && (
+    <div className="flex flex-col h-screen max-w-md mx-auto bg-slate-50 relative overflow-hidden border-x border-slate-200 shadow-2xl">
+      {isLoading && (
         <div className="absolute inset-0 z-[60] bg-white flex flex-col items-center justify-center">
           <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Načítavam Nakup...</p>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Načítavam...</p>
         </div>
       )}
 
@@ -119,25 +92,23 @@ const App = () => {
       <header className="bg-emerald-600 text-white px-6 pt-12 pb-6 rounded-b-[2.5rem] shadow-xl shadow-emerald-900/10 shrink-0">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tighter leading-none uppercase">Nakup</h1>
-            <p className="text-[10px] font-semibold opacity-70 tracking-widest mt-1 uppercase">Zdieľaný zoznam</p>
+            <h1 className="text-4xl font-black tracking-tighter leading-none uppercase italic">Nakup</h1>
+            <p className="text-[10px] font-bold opacity-80 tracking-widest mt-1 uppercase">Môj zoznam</p>
           </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 active:scale-95 transition-all"
-          >
+          <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 flex items-center gap-2 transition-all">
             <span className="text-xl font-black">{products.filter(p => p.status === 'needed').length}</span>
-            <span className="text-xs opacity-60">🔄</span>
-          </button>
+            <span className="text-xs opacity-60">🛒</span>
+          </div>
         </div>
       </header>
 
-      {/* List */}
+      {/* List Content */}
       <main className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar pb-32">
         {filteredList.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center opacity-20 text-slate-400 py-20">
-            <span className="text-8xl mb-4">🛒</span>
-            <p className="font-bold uppercase tracking-widest text-sm text-center">Zoznam je prázdny</p>
+          <div className="h-full flex flex-col items-center justify-center opacity-30 text-slate-400 py-20">
+            <div className="text-8xl mb-4 bg-slate-200 w-24 h-24 rounded-full flex items-center justify-center">🛍️</div>
+            <p className="font-black uppercase tracking-widest text-sm text-center">Zoznam je prázdny</p>
+            <p className="text-xs mt-2 text-center">Pridajte niečo pomocou tlačidla +</p>
           </div>
         ) : (
           filteredList.map(item => (
@@ -149,23 +120,23 @@ const App = () => {
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                <div className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-colors ${
                   item.status === 'stocked' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200'
                 }`}>
-                  {item.status === 'stocked' && <span className="text-white text-[10px]">✓</span>}
+                  {item.status === 'stocked' && <span className="text-white text-xs font-bold">✓</span>}
                 </div>
                 <div>
                   <h3 className={`font-bold text-lg leading-tight ${item.status === 'stocked' ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                     {item.name}
                   </h3>
-                  <p className="text-[10px] font-extrabold text-emerald-600/50 uppercase">{item.category}</p>
+                  <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-tighter">{item.category}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {item.quantity && <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] font-bold">{item.quantity}</span>}
+                {item.quantity && <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black border border-emerald-100">{item.quantity}</span>}
                 <button 
                   onClick={(e) => deleteProduct(item.id, e)}
-                  className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-400 text-xl"
+                  className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 text-2xl transition-colors"
                 >
                   &times;
                 </button>
@@ -175,59 +146,59 @@ const App = () => {
         )}
       </main>
 
-      {/* FAB - Pridať */}
+      {/* FAB */}
       <button 
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-24 right-6 w-16 h-16 bg-emerald-600 text-white rounded-2xl shadow-2xl shadow-emerald-600/40 flex items-center justify-center text-4xl font-light active:scale-90 transition-transform z-40"
+        className="fixed bottom-24 right-6 w-16 h-16 bg-emerald-600 text-white rounded-2xl shadow-2xl shadow-emerald-600/40 flex items-center justify-center text-4xl font-light active:scale-90 transition-transform z-40 border-4 border-white"
       >
-        +
+        <span className="mb-1">+</span>
       </button>
 
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex pb-8 pt-4 px-6 gap-4 safe-area-inset-bottom z-30">
+      {/* Tabs */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex pb-8 pt-4 px-6 gap-4 safe-area-inset-bottom z-30">
         <button 
           onClick={() => setActiveTab('shopping')}
           className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${activeTab === 'shopping' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400'}`}
         >
-          <span className="text-xl">🛍️</span>
-          <span className="text-[10px] font-black uppercase tracking-tighter">Košík</span>
+          <span className="text-xl">🛒</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Kúpiť</span>
         </button>
         <button 
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-3 rounded-2xl flex flex-col items-center gap-1 transition-all ${activeTab === 'all' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400'}`}
         >
-          <span className="text-xl">🏠</span>
-          <span className="text-[10px] font-black uppercase tracking-tighter">Všetko</span>
+          <span className="text-xl">📦</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">Zásoby</span>
         </button>
       </nav>
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}>
+        <div className="fixed inset-0 z-[70] flex items-end justify-center p-4 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsModalOpen(false)}>
           <div 
-            className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 animate-slide-up shadow-2xl"
+            className="bg-white w-full max-w-sm rounded-[3rem] p-8 animate-slide-up shadow-2xl mb-4"
             onClick={e => e.stopPropagation()}
           >
-            <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6" />
-            <h2 className="text-2xl font-extrabold text-slate-800 mb-6 tracking-tight uppercase">Pridať vec</h2>
+            <div className="w-16 h-1.5 bg-slate-100 rounded-full mx-auto mb-8" />
+            <h2 className="text-2xl font-black text-slate-800 mb-6 tracking-tighter uppercase italic">Nová položka</h2>
             
             <div className="space-y-4">
               <input 
                 autoFocus
-                className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold text-lg transition-all"
-                placeholder="Názov"
+                className="w-full bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 focus:bg-white rounded-2xl p-4 outline-none font-bold text-lg transition-all"
+                placeholder="Čo treba kúpiť?"
                 value={newItem.name}
                 onChange={e => setNewItem({...newItem, name: e.target.value})}
               />
               <div className="flex gap-3">
                 <input 
-                  className="w-24 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold text-center"
+                  className="w-24 bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 focus:bg-white rounded-2xl p-4 outline-none font-bold text-center"
                   placeholder="Mn."
                   value={newItem.quantity}
                   onChange={e => setNewItem({...newItem, quantity: e.target.value})}
                 />
                 <select 
-                  className="flex-1 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl p-4 outline-none font-bold text-emerald-600 appearance-none"
+                  className="flex-1 bg-slate-50 border-2 border-slate-100 focus:border-emerald-500 focus:bg-white rounded-2xl p-4 outline-none font-bold text-emerald-600 appearance-none"
                   value={newItem.category}
                   onChange={e => setNewItem({...newItem, category: e.target.value})}
                 >
@@ -236,9 +207,9 @@ const App = () => {
               </div>
               <button 
                 onClick={addProduct}
-                className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-emerald-600/30 active:scale-95 transition-transform mt-4"
+                className="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-emerald-600/30 active:scale-95 transition-all mt-4 border-b-4 border-emerald-800"
               >
-                Uložiť
+                Pridať do zoznamu
               </button>
             </div>
           </div>
